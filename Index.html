@@ -1,0 +1,438 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#5b183d">
+<title>TU JOYA CHIKON</title>
+<style>
+:root{--vino:#681b43;--rosa:#f7eaf1;--oro:#c69b45;--fondo:#fffafc;--texto:#30232b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--fondo);color:var(--texto)}
+header{background:var(--vino);color:white;padding:18px 14px;text-align:center}
+header img{max-width:100px;max-height:75px;object-fit:contain}
+header h1{font-size:23px;margin:8px 0 4px}
+header p{margin:0;font-size:13px}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;background:#fff;position:sticky;top:0;z-index:2;box-shadow:0 2px 6px #0001}
+nav button{padding:11px 3px;border:0;border-radius:9px;background:var(--rosa);color:var(--vino);font-weight:bold;font-size:12px}
+nav button.active{background:var(--vino);color:white}
+main{padding:12px;max-width:900px;margin:auto}
+h2{color:var(--vino);font-size:20px}
+h3{font-size:16px;color:var(--vino)}
+.card{background:white;border:1px solid #f0dce6;border-radius:13px;padding:14px;margin-bottom:12px;box-shadow:0 2px 5px #00005}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.metric{background:var(--rosa);border-radius:10px;padding:12px}
+.metric small{display:block;color:#6e5865}
+.metric strong{display:block;margin-top:7px;font-size:19px;overflow-wrap:anywhere}
+label{display:block;font-size:13px;font-weight:bold;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d9c4d0;border-radius:8px;background:white;font-size:16px;color:var(--texto)}
+button{cursor:pointer}
+.primary,.secondary,.danger{border:0;padding:11px;border-radius:8px;font-weight:bold}
+.primary{background:var(--vino);color:white}
+.secondary{background:var(--rosa);color:var(--vino)}
+.danger{background:#ffeded;color:#9b2020}
+form button{width:100%;margin-top:12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.actions button{flex:1}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px;border-bottom:1px solid #eee;vertical-align:top}
+th{background:#f8edf2;color:var(--vino)}
+.empty{color:#877582;text-align:center;padding:18px}
+.note{font-size:12px;color:#756470;line-height:1.5}
+.pill{background:var(--rosa);padding:4px 7px;border-radius:7px;display:inline-block}
+footer{text-align:center;padding:20px;color:#806c78;font-size:12px}
+.hidden{display:none!important}
+@media(min-width:650px){nav{grid-template-columns:repeat(6,1fr)}.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header>
+  <img id="logo" class="hidden" alt="Logotipo">
+  <h1>TU JOYA CHIKON</h1>
+  <p>Control de ventas, inventario y clientes</p>
+</header>
+
+<nav id="nav">
+  <button data-page="inicio" class="active">🏠 Inicio</button>
+  <button data-page="clientes">👥 Clientes</button>
+  <button data-page="productos">💎 Productos</button>
+  <button data-page="ventas">🛍️ Ventas</button>
+  <button data-page="abonos">💵 Abonos</button>
+  <button data-page="movimientos">📒 Ingresos/gastos</button>
+  <button data-page="reportes">📊 Reportes</button>
+  <button data-page="datos">⚙️ Datos</button>
+</nav>
+
+<main>
+<section id="inicio" class="page">
+  <h2>Resumen del negocio</h2>
+  <div class="grid">
+    <div class="metric"><small>Ventas registradas</small><strong id="mVentas">$0</strong></div>
+    <div class="metric"><small>Dinero recibido</small><strong id="mRecibido">$0</strong></div>
+    <div class="metric"><small>Cartera pendiente</small><strong id="mCartera">$0</strong></div>
+    <div class="metric"><small>Gastos registrados</small><strong id="mGastos">$0</strong></div>
+    <div class="metric"><small>Clientes</small><strong id="mClientes">0</strong></div>
+    <div class="metric"><small>Productos</small><strong id="mProductos">0</strong></div>
+  </div>
+  <div class="card">
+    <h3>Actividad reciente</h3>
+    <div id="reciente"></div>
+  </div>
+  <p class="note">Los valores corresponden a los registros guardados en este dispositivo. Las ventas son ingresos comerciales brutos, no ganancias netas.</p>
+</section>
+
+<section id="clientes" class="page hidden">
+  <h2>Clientes</h2>
+  <div class="card">
+    <form id="formCliente">
+      <label>Nombre completo *</label><input name="nombre" required>
+      <label>Teléfono</label><input name="telefono" inputmode="tel">
+      <label>Dirección o notas</label><input name="nota">
+      <button class="primary">Guardar cliente</button>
+    </form>
+  </div>
+  <div class="card"><input id="buscarCliente" placeholder="Buscar cliente..." aria-label="Buscar cliente">
+    <div id="listaClientes"></div>
+  </div>
+</section>
+
+<section id="productos" class="page hidden">
+  <h2>Productos e inventario</h2>
+  <div class="card">
+    <form id="formProducto">
+      <label>Nombre del producto *</label><input name="nombre" required>
+      <label>Referencia o código</label><input name="codigo">
+      <label>Costo unitario (COP) *</label><input name="costo" type="number" min="0" step="1" required>
+      <label>Precio de venta unitario (COP) *</label><input name="precio" type="number" min="0" step="1" required>
+      <label>Unidades iniciales *</label><input name="stock" type="number" min="0" step="1" required>
+      <button class="primary">Guardar producto</button>
+    </form>
+  </div>
+  <div class="card"><input id="buscarProducto" placeholder="Buscar producto..." aria-label="Buscar producto">
+    <div id="listaProductos"></div>
+  </div>
+  <div class="card">
+    <h3>Registrar entrada de inventario</h3>
+    <form id="formEntrada">
+      <label>Producto</label><select name="producto" id="entradaProducto" required></select>
+      <label>Unidades que ingresan</label><input name="cantidad" type="number" min="1" step="1" required>
+      <button class="primary">Registrar entrada</button>
+    </form>
+  </div>
+</section>
+
+<section id="ventas" class="page hidden">
+  <h2>Registrar venta</h2>
+  <div class="card">
+    <form id="formVenta">
+      <label>Cliente *</label><select name="cliente" id="ventaCliente" required></select>
+      <label>Producto *</label><select name="producto" id="ventaProducto" required></select>
+      <label>Cantidad *</label><input name="cantidad" type="number" min="1" step="1" value="1" required>
+      <label>Precio unitario (COP) *</label><input name="precio" id="ventaPrecio" type="number" min="0" step="1" required>
+      <label>Tipo de venta</label>
+      <select name="tipo"><option value="contado">Contado</option><option value="credito">A crédito</option></select>
+      <label>Abono inicial (COP)</label><input name="abono" type="number" min="0" step="1" value="0">
+      <label>Fecha de venta</label><input name="fecha" type="date" required>
+      <button class="primary">Guardar venta</button>
+    </form>
+    <p class="note">Al guardar la venta se descuentan las unidades del inventario. El abono inicial no puede superar el total.</p>
+  </div>
+  <div class="card"><h3>Historial de ventas</h3><div id="listaVentas"></div></div>
+</section>
+
+<section id="abonos" class="page hidden">
+  <h2>Abonos a créditos</h2>
+  <div class="card">
+    <form id="formAbono">
+      <label>Venta pendiente</label><select name="venta" id="abonoVenta" required></select>
+      <label>Valor del abono (COP)</label><input name="valor" type="number" min="1" step="1" required>
+      <label>Fecha</label><input name="fecha" type="date" required>
+      <label>Observación</label><input name="nota">
+      <button class="primary">Registrar abono</button>
+    </form>
+  </div>
+  <div class="card"><h3>Créditos pendientes</h3><div id="listaCreditos"></div></div>
+  <div class="card"><h3>Historial de abonos</h3><div id="listaAbonos"></div></div>
+</section>
+
+<section id="movimientos" class="page hidden">
+  <h2>Ingresos y gastos</h2>
+  <div class="card">
+    <form id="formMovimiento">
+      <label>Tipo de movimiento</label><select name="tipo"><option value="ingreso">Ingreso adicional</option><option value="gasto">Gasto</option></select>
+      <label>Concepto *</label><input name="concepto" required>
+      <label>Valor (COP) *</label><input name="valor" type="number" min="1" step="1" required>
+      <label>Fecha</label><input name="fecha" type="date" required>
+      <button class="primary">Guardar movimiento</button>
+    </form>
+  </div>
+  <div class="card"><h3>Historial de movimientos</h3><div id="listaMovimientos"></div></div>
+</section>
+
+<section id="reportes" class="page hidden">
+  <h2>Reportes</h2>
+  <div class="card">
+    <label>Filtrar por mes</label><input id="mesReporte" type="month">
+    <div class="grid" style="margin-top:12px">
+      <div class="metric"><small>Ventas del mes</small><strong id="rVentas">$0</strong></div>
+      <div class="metric"><small>Abonos recibidos</small><strong id="rAbonos">$0</strong></div>
+      <div class="metric"><small>Ingresos adicionales</small><strong id="rIngresos">$0</strong></div>
+      <div class="metric"><small>Gastos</small><strong id="rGastos">$0</strong></div>
+      <div class="metric"><small>Costo estimado vendido</small><strong id="rCostos">$0</strong></div>
+      <div class="metric"><small>Margen bruto estimado</small><strong id="rMargen">$0</strong></div>
+    </div>
+  </div>
+  <div class="card"><h3>Inventario actual</h3><div id="reporteStock"></div></div>
+  <div class="card"><h3>Cartera por cliente</h3><div id="reporteCartera"></div></div>
+  <p class="note">El margen bruto estimado es la venta menos el costo registrado de los productos vendidos. No incluye todos los gastos, impuestos ni otros costos del negocio.</p>
+</section>
+
+<section id="datos" class="page hidden">
+  <h2>Datos y seguridad</h2>
+  <div class="card">
+    <h3>Logotipo del negocio</h3>
+    <label>Selecciona una imagen desde tu celular</label>
+    <input type="file" id="archivoLogo" accept="image/*">
+    <div class="actions"><button id="quitarLogo" class="secondary">Quitar logotipo</button></div>
+  </div>
+  <div class="card">
+    <h3>Copia de seguridad</h3>
+    <p class="note">Exporta todos tus registros en un archivo JSON. Guárdalo en un lugar seguro.</p>
+    <div class="actions">
+      <button id="exportar" class="primary">Descargar copia completa</button>
+      <button id="exportarCSV" class="secondary">Exportar ventas CSV</button>
+    </div>
+    <label>Restaurar una copia JSON</label><input id="archivoBackup" type="file" accept=".json,application/json">
+    <button id="importar" class="secondary" style="width:100%;margin-top:10px">Restaurar copia</button>
+  </div>
+  <div class="card">
+    <h3>Borrar todos los datos</h3>
+    <p class="note">Esta acción es irreversible. Descarga primero una copia de seguridad.</p>
+    <button id="borrarTodo" class="danger" style="width:100%">Borrar todos los registros</button>
+  </div>
+  <p class="note">Guardado automático local. No se envían datos a internet. No borres los datos del navegador ni cambies de navegador sin exportar una copia.</p>
+</section>
+</main>
+<footer>TU JOYA CHIKON · Control de tu negocio</footer>
+
+<script>
+"use strict";
+const CLAVE="tuJoyaChikon_v1";
+const hoy=()=>new Date().toLocaleDateString("en-CA");
+const nuevoId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const inicial=()=>({clientes:[],productos:[],ventas:[],abonos:[],movimientos:[],logo:""});
+let db;
+try{db=JSON.parse(localStorage.getItem(CLAVE))||inicial()}catch(e){db=inicial()}
+function guardar(){
+  try{localStorage.setItem(CLAVE,JSON.stringify(db));estadoGuardado=true}
+  catch(e){estadoGuardado=false;alert("No se pudo guardar. Exporta una copia y revisa el espacio disponible del navegador.")}
+}
+let estadoGuardado=true;
+const $=id=>document.getElementById(id);
+const cop=n=>new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(Number(n)||0);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const totalVenta=v=>Number(v.cantidad)*Number(v.precio);
+const abonado=v=>Number(v.abonoInicial||0)+db.abonos.filter(a=>a.venta===v.id).reduce((s,a)=>s+Number(a.valor),0);
+const saldo=v=>Math.max(0,totalVenta(v)-abonado(v));
+const clienteNombre=id=>db.clientes.find(c=>c.id===id)?.nombre||"Cliente eliminado";
+const productoNombre=id=>db.productos.find(p=>p.id===id)?.nombre||"Producto eliminado";
+function tabla(encabezados,filas){
+ if(!filas.length)return '<p class="empty">Todavía no hay registros.</p>';
+ return '<div class="tablewrap"><table><thead><tr>'+encabezados.map(x=>'<th>'+x+'</th>').join("")+'</tr></thead><tbody>'+filas.join("")+'</tbody></table></div>';
+}
+function opcionLista(items,etiqueta,seleccionada){
+ return '<option value="">Seleccionar...</option>'+items.map(x=>'<option value="'+esc(x.id)+'" '+(x.id===seleccionada?'selected':'')+'>'+esc(etiqueta(x))+'</option>').join("");
+}
+function llenarSelectores(){
+ $("ventaCliente").innerHTML=opcionLista(db.clientes,c=>c.nombre);
+ $("ventaProducto").innerHTML=opcionLista(db.productos,p=>p.nombre+" · Stock: "+p.stock);
+ $("entradaProducto").innerHTML=opcionLista(db.productos,p=>p.nombre+" · Stock: "+p.stock);
+ const pendientes=db.ventas.filter(v=>saldo(v)>0);
+ $("abonoVenta").innerHTML=opcionLista(pendientes,v=>clienteNombre(v.cliente)+" · "+productoNombre(v.producto)+" · Debe "+cop(saldo(v)));
+}
+function renderClientes(){
+ const q=$("buscarCliente").value.toLowerCase();
+ $("listaClientes").innerHTML=tabla(["Cliente","Teléfono","Saldo pendiente","Acción"],db.clientes.filter(c=>(c.nombre+" "+c.telefono).toLowerCase().includes(q)).map(c=>{
+ const deuda=db.ventas.filter(v=>v.cliente===c.id).reduce((s,v)=>s+saldo(v),0);
+ return "<tr><td>"+esc(c.nombre)+"<br><small>"+esc(c.nota||"")+"</small></td><td>"+esc(c.telefono||"—")+"</td><td>"+cop(deuda)+"</td><td><button class='danger' data-del='cliente' data-id='"+c.id+"'>Eliminar</button></td></tr>";
+ }));
+}
+function renderProductos(){
+ const q=$("buscarProducto").value.toLowerCase();
+ $("listaProductos").innerHTML=tabla(["Producto","Costo","Precio","Stock","Acción"],db.productos.filter(p=>(p.nombre+" "+p.codigo).toLowerCase().includes(q)).map(p=>"<tr><td>"+esc(p.nombre)+"<br><small>"+esc(p.codigo||"")+"</small></td><td>"+cop(p.costo)+"</td><td>"+cop(p.precio)+"</td><td>"+p.stock+"</td><td><button class='secondary' data-edit-price='"+p.id+"'>Cambiar precio</button> <button class='danger' data-del='producto' data-id='"+p.id+"'>Eliminar</button></td></tr>"));
+}
+function renderVentas(){
+ $("listaVentas").innerHTML=tabla(["Fecha","Cliente / producto","Total","Abonado","Pendiente"],db.ventas.slice().reverse().map(v=>"<tr><td>"+esc(v.fecha)+"</td><td>"+esc(clienteNombre(v.cliente))+"<br>"+esc(productoNombre(v.producto))+" × "+v.cantidad+"<br><span class='pill'>"+esc(v.tipo)+"</span></td><td>"+cop(totalVenta(v))+"</td><td>"+cop(abonado(v))+"</td><td>"+cop(saldo(v))+"</td></tr>"));
+}
+function renderAbonos(){
+ $("listaCreditos").innerHTML=tabla(["Cliente","Venta","Total","Abonado","Debe"],db.ventas.filter(v=>saldo(v)>0).map(v=>"<tr><td>"+esc(clienteNombre(v.cliente))+"</td><td>"+esc(productoNombre(v.producto))+" × "+v.cantidad+"</td><td>"+cop(totalVenta(v))+"</td><td>"+cop(abonado(v))+"</td><td>"+cop(saldo(v))+"</td></tr>"));
+ $("listaAbonos").innerHTML=tabla(["Fecha","Cliente","Valor","Nota"],db.abonos.slice().reverse().map(a=>{const v=db.ventas.find(v=>v.id===a.venta);return "<tr><td>"+esc(a.fecha)+"</td><td>"+esc(v?clienteNombre(v.cliente):"Venta eliminada")+"</td><td>"+cop(a.valor)+"</td><td>"+esc(a.nota||"")+"</td></tr>"}));
+}
+function renderMovimientos(){
+ $("listaMovimientos").innerHTML=tabla(["Fecha","Tipo","Concepto","Valor","Acción"],db.movimientos.slice().reverse().map(m=>"<tr><td>"+esc(m.fecha)+"</td><td>"+esc(m.tipo)+"</td><td>"+esc(m.concepto)+"</td><td>"+cop(m.valor)+"</td><td><button class='danger' data-del='movimiento' data-id='"+m.id+"'>Eliminar</button></td></tr>"));
+}
+function renderReportes(){
+ const mes=$("mesReporte").value||hoy().slice(0,7);
+ const ventas=db.ventas.filter(v=>v.fecha.startsWith(mes));
+ const abonos=db.abonos.filter(a=>a.fecha.startsWith(mes));
+ const mov=db.movimientos.filter(m=>m.fecha.startsWith(mes));
+ const suma=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+ const total=suma(ventas,totalVenta), abon=suma(abonos,a=>+a.valor);
+ const ingresos=suma(mov.filter(m=>m.tipo==="ingreso"),m=>+m.valor);
+ const gastos=suma(mov.filter(m=>m.tipo==="gasto"),m=>+m.valor);
+ const costos=suma(ventas,v=>(+db.productos.find(p=>p.id===v.producto)?.costo||0)*v.cantidad);
+ $("rVentas").textContent=cop(total);$("rAbonos").textContent=cop(abon);
+ $("rIngresos").textContent=cop(ingresos);$("rGastos").textContent=cop(gastos);
+ $("rCostos").textContent=cop(costos);$("rMargen").textContent=cop(total-costos);
+ $("reporteStock").innerHTML=tabla(["Producto","Unidades","Valor al costo"],db.productos.map(p=>"<tr><td>"+esc(p.nombre)+"</td><td>"+p.stock+"</td><td>"+cop(p.stock*p.costo)+"</td></tr>"));
+ const cartera=db.clientes.map(c=>({c,deuda:suma(db.ventas.filter(v=>v.cliente===c.id),saldo)})).filter(x=>x.deuda>0);
+ $("reporteCartera").innerHTML=tabla(["Cliente","Teléfono","Debe"],cartera.map(x=>"<tr><td>"+esc(x.c.nombre)+"</td><td>"+esc(x.c.telefono||"—")+"</td><td>"+cop(x.deuda)+"</td></tr>"));
+}
+function renderInicio(){
+ const ventas=db.ventas;
+ $("mVentas").textContent=cop(ventas.reduce((s,v)=>s+totalVenta(v),0));
+ $("mRecibido").textContent=cop(ventas.reduce((s,v)=>s+abonado(v),0)+db.movimientos.filter(m=>m.tipo==="ingreso").reduce((s,m)=>s+ +m.valor,0));
+ $("mCartera").textContent=cop(ventas.reduce((s,v)=>s+saldo(v),0));
+ $("mGastos").textContent=cop(db.movimientos.filter(m=>m.tipo==="gasto").reduce((s,m)=>s+ +m.valor,0));
+ $("mClientes").textContent=db.clientes.length;$("mProductos").textContent=db.productos.length;
+ const ultimas=ventas.slice(-5).reverse();
+ $("reciente").innerHTML=ultimas.length?tabla(["Fecha","Cliente","Total"],ultimas.map(v=>"<tr><td>"+esc(v.fecha)+"</td><td>"+esc(clienteNombre(v.cliente))+"</td><td>"+cop(totalVenta(v))+"</td></tr>")):'<p class="empty">Registra tu primera venta para ver la actividad.</p>';
+}
+function render(){
+ llenarSelectores();renderClientes();renderProductos();renderVentas();renderAbonos();renderMovimientos();renderReportes();renderInicio();
+ if(db.logo){$("logo").src=db.logo;$("logo").classList.remove("hidden")}else $("logo").classList.add("hidden");
+}
+function agregarAbono(ventaId,valor,fecha,nota){
+ const v=db.ventas.find(v=>v.id===ventaId);
+ if(!v)throw Error("No se encontró la venta.");
+ if(valor<=0||valor>saldo(v))throw Error("El abono debe ser mayor que cero y no superar el saldo pendiente.");
+ db.abonos.push({id:nuevoId(),venta:ventaId,valor,fecha,nota});
+}
+function enviar(form,fn){
+ $(form).addEventListener("submit",e=>{
+  e.preventDefault();
+  try{const datos=Object.fromEntries(new FormData(e.target).entries());fn(datos);guardar();render();e.target.reset();
+   if(e.target.elements.fecha)e.target.elements.fecha.value=hoy();
+   if(form==="formVenta"){ $("ventaPrecio").value=""; }
+   alert("Registro guardado correctamente.");
+  }catch(err){alert(err.message||"No se pudo guardar el registro.")}
+ });
+}
+enviar("formCliente",d=>{
+ db.clientes.push({id:nuevoId(),nombre:d.nombre.trim(),telefono:d.telefono.trim(),nota:d.nota.trim()});
+});
+enviar("formProducto",d=>{
+ const costo=Number(d.costo),precio=Number(d.precio),stock=Number(d.stock);
+ if(costo<0||precio<0||stock<0||![costo,precio,stock].every(Number.isFinite))throw Error("Revisa costo, precio y stock.");
+ db.productos.push({id:nuevoId(),nombre:d.nombre.trim(),codigo:d.codigo.trim(),costo,precio,stock});
+});
+enviar("formEntrada",d=>{
+ const p=db.productos.find(p=>p.id===d.producto),n=Number(d.cantidad);
+ if(!p||!Number.isInteger(n)||n<1)throw Error("Selecciona un producto y una cantidad válida.");
+ p.stock+=n;
+});
+enviar("formVenta",d=>{
+ const p=db.productos.find(p=>p.id===d.producto),n=Number(d.cantidad),precio=Number(d.precio),abono=Number(d.abono||0);
+ if(!db.clientes.some(c=>c.id===d.cliente))throw Error("Selecciona un cliente válido.");
+ if(!p)throw Error("Selecciona un producto válido.");
+ if(!Number.isInteger(n)||n<1||n>p.stock)throw Error("Cantidad inválida o inventario insuficiente.");
+ if(!Number.isFinite(precio)||precio<0||!Number.isFinite(abono)||abono<0)throw Error("Revisa el precio y el abono.");
+ const total=n*precio;
+ if(abono>total)throw Error("El abono inicial no puede superar el total de la venta.");
+ if(d.tipo==="contado"&&abono!==total)throw Error("Para venta de contado, el abono debe ser igual al total. Para pagos parciales, elige crédito.");
+ const v={id:nuevoId(),cliente:d.cliente,producto:p.id,cantidad:n,precio,tipo:d.tipo,abonoInicial:abono,fecha:d.fecha||hoy()};
+ db.ventas.push(v);p.stock-=n;
+});
+enviar("formAbono",d=>{
+ const valor=Number(d.valor);
+ agregarAbono(d.venta,valor,d.fecha||hoy(),d.nota.trim());
+});
+enviar("formMovimiento",d=>{
+ const valor=Number(d.valor);
+ if(!Number.isFinite(valor)||valor<=0)throw Error("El valor debe ser mayor que cero.");
+ db.movimientos.push({id:nuevoId(),tipo:d.tipo,concepto:d.concepto.trim(),valor,fecha:d.fecha||hoy()});
+});
+$("ventaProducto").addEventListener("change",()=>{
+ const p=db.productos.find(p=>p.id===$("ventaProducto").value);
+ $("ventaPrecio").value=p?p.precio:"";
+});
+$("buscarCliente").addEventListener("input",renderClientes);
+$("buscarProducto").addEventListener("input",renderProductos);
+$("mesReporte").value=hoy().slice(0,7);
+$("mesReporte").addEventListener("change",renderReportes);
+$("nav").addEventListener("click",e=>{
+ const b=e.target.closest("button[data-page]");if(!b)return;
+ document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+ $(b.dataset.page).classList.remove("hidden");
+ document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x===b));
+ render();
+});
+document.addEventListener("click",e=>{
+ const del=e.target.closest("[data-del]");
+ if(del){
+  const tipo=del.dataset.del,id=del.dataset.id;
+  if(!confirm("¿Eliminar este registro? Esta acción no se puede deshacer."))return;
+  if(tipo==="cliente"){
+   if(db.ventas.some(v=>v.cliente===id)){alert("No puedes eliminar un cliente que tiene ventas. Conserva el historial.");return}
+   db.clientes=db.clientes.filter(x=>x.id!==id);
+  }
+  if(tipo==="producto"){
+   if(db.ventas.some(v=>v.producto===id)){alert("No puedes eliminar un producto que aparece en ventas. Conserva el historial.");return}
+   db.productos=db.productos.filter(x=>x.id!==id);
+  }
+  if(tipo==="movimiento")db.movimientos=db.movimientos.filter(x=>x.id!==id);
+  guardar();render();
+ }
+ const edit=e.target.closest("[data-edit-price]");
+ if(edit){
+  const p=db.productos.find(p=>p.id===edit.dataset.editPrice);if(!p)return;
+  const s=prompt("Nuevo precio de venta para "+p.nombre,p.precio);
+  if(s===null)return;const n=Number(s);
+  if(!Number.isFinite(n)||n<0){alert("Precio no válido.");return}
+  p.precio=n;guardar();render();
+ }
+});
+$("archivoLogo").addEventListener("change",e=>{
+ const f=e.target.files[0];if(!f)return;
+ if(f.size>2*1024*1024){alert("El logotipo debe pesar menos de 2 MB.");e.target.value="";return}
+ const r=new FileReader();r.onload=()=>{db.logo=r.result;guardar();render();alert("Logotipo guardado.")};r.readAsDataURL(f);
+});
+$("quitarLogo").addEventListener("click",()=>{
+ db.logo="";guardar();render();
+});
+$("exportar").addEventListener("click",()=>{
+ const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
+ descargar(blob,"TU_JOYA_CHIKON_copia_"+hoy()+".json");
+});
+$("exportarCSV").addEventListener("click",()=>{
+ const filas=[["Fecha","Cliente","Producto","Cantidad","Precio unitario","Total","Abonado","Saldo","Tipo"]];
+ db.ventas.forEach(v=>filas.push([v.fecha,clienteNombre(v.cliente),productoNombre(v.producto),v.cantidad,v.precio,totalVenta(v),abonado(v),saldo(v),v.tipo]));
+ const csv=filas.map(f=>f.map(x=>'"'+String(x??"").replace(/"/g,'""')+'"').join(";")).join("\r\n");
+ descargar(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}),"TU_JOYA_CHIKON_ventas_"+hoy()+".csv");
+});
+function descargar(blob,nombre){
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+$("importar").addEventListener("click",async()=>{
+ const f=$("archivoBackup").files[0];if(!f){alert("Selecciona primero un archivo JSON.");return}
+ try{
+  const nuevo=JSON.parse(await f.text());
+  const campos=["clientes","productos","ventas","abonos","movimientos"];
+  if(!nuevo||!campos.every(k=>Array.isArray(nuevo[k])))throw Error("El archivo no parece una copia válida de TU JOYA CHIKON.");
+  if(!confirm("Restaurar reemplazará los registros actuales. ¿Continuar?"))return;
+  db={...inicial(),...nuevo};guardar();render();alert("Copia restaurada.");
+ }catch(err){alert(err.message||"No se pudo leer el archivo.")}
+});
+$("borrarTodo").addEventListener("click",()=>{
+ if(!confirm("¿Estás seguro? Se borrarán todos los clientes, productos, ventas, abonos y movimientos."))return;
+ if(!confirm("Última confirmación: esta acción es irreversible. ¿Borrar todo?"))return;
+ db=inicial();guardar();render();alert("Los registros fueron borrados.");
+});
+document.querySelectorAll("#formVenta [name=fecha],#formAbono [name=fecha],#formMovimiento [name=fecha]").forEach(x=>x.value=hoy());
+render();
+</script>
+</body>
+  </html>
